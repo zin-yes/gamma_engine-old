@@ -3,21 +3,26 @@ package zin.gammaEngine.core.componentSystem;
 import java.util.ArrayList;
 import java.util.List;
 
+import zin.gammaEngine.core.Game;
 import zin.gammaEngine.core.utils.Transform;
 
 public class GameObject extends Transform
 {
+
+	private Game game;
 
 	private GameObject parent;
 
 	private List<GameObject> children;
 	private List<GameComponent> components;
 
-	public GameObject()
+	public GameObject(Game game)
 	{
 		super();
 		children = new ArrayList<>();
 		components = new ArrayList<>();
+
+		this.game = game;
 	}
 
 	public GameObject addChild(GameObject child)
@@ -37,7 +42,7 @@ public class GameObject extends Transform
 	{
 		for (GameComponent component : getComponents())
 			component.init();
-		
+
 		for (GameObject child : getChildren())
 			child.init();
 	}
@@ -46,7 +51,7 @@ public class GameObject extends Transform
 	{
 		for (GameComponent component : getComponents())
 			component.input();
-		
+
 		for (GameObject child : getChildren())
 			child.input();
 	}
@@ -55,7 +60,7 @@ public class GameObject extends Transform
 	{
 		for (int i = 0; i < getComponents().size(); i++)
 			getComponents().get(i).update();
-		
+
 		for (int i = 0; i < getChildren().size(); i++)
 			getChildren().get(i).update();
 	}
@@ -63,17 +68,26 @@ public class GameObject extends Transform
 	public void render()
 	{
 		for (int i = 0; i < getComponents().size(); i++)
+			getComponents().get(i).preRender();
+
+		for (int i = 0; i < getComponents().size(); i++)
+			getComponents().get(i).priorityRender();
+
+		for (int i = 0; i < getComponents().size(); i++)
 			getComponents().get(i).render();
-		
+
 		for (int i = 0; i < getChildren().size(); i++)
 			getChildren().get(i).render();
+
+		for (int i = 0; i < getComponents().size(); i++)
+			getComponents().get(i).postRender();
 	}
 
 	public void destroy()
 	{
 		for (GameComponent component : getComponents())
 			component.destroy();
-		
+
 		for (GameObject child : getChildren())
 			child.destroy();
 	}
@@ -104,8 +118,13 @@ public class GameObject extends Transform
 			throw new IllegalStateException("You cannot remove an object which does not belong to a parent object.");
 
 		parent.getChildren().remove(this);
-		
+
 		destroy();
+	}
+
+	public Game getGame()
+	{
+		return game;
 	}
 
 }

@@ -1,13 +1,22 @@
 package zin.gammaEngine.core;
 
+import static org.lwjgl.glfw.GLFW.glfwGetVersionString;
+
+import org.lwjgl.Version;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+
+import zin.gammaEngine.core.utils.Logger;
 import zin.gammaEngine.graphics.Display;
 
 public class Engine
 {
 
-	private static final String ENGINE_VERSION = "0.0.1-SNAPSHOT";
+	private static final String ENGINE_VERSION = "0.0.2-SNAPSHOT";
 
 	private boolean running = false;
+
+	private int frameRate, updateRate;
 
 	private double frameTime;
 
@@ -34,13 +43,17 @@ public class Engine
 		int frames = 0;
 		double frameCounter = 0;
 
-		game.init();
+		Logger.log("Engine version: " + getEngineVersion());
+		Logger.log("Engine starting.");
+		Logger.log("Graphics Card Manufacturer: " + GL11.glGetString(GL11.GL_VENDOR));
+		Logger.log("Graphics Card Name: " + GL11.glGetString(GL11.GL_RENDERER));
+		Logger.log("OpenGL Version: " + GL11.glGetString(GL11.GL_VERSION));
+		Logger.log("GLSL Version: " + GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
+		Logger.log("GLFW Version: " + glfwGetVersionString());
+		Logger.log("LWJGL Version: " + Version.getVersion());
 
-		if (true)
-		{
-			System.out.println("Engine version: " + getEngineVersion());
-			System.out.println("Engine loop starting.");
-		}
+		game.init();
+		game.getRootObject().init();
 
 		double lastTime = (double) System.nanoTime() / 1000000000L;
 		double unprocessedTime = 0;
@@ -69,23 +82,27 @@ public class Engine
 					break;
 				}
 
+				game.loop();
+				
 				game.getRootObject().input();
 
 				updates++;
 				game.getRootObject().update();
 
-				game.loop();
-
 				if (frameCounter >= 1.0)
 				{
-					System.out.println("Game FPS: " + frames + ", " + " Game UPS: " + updates);
-					updates = 0;
+					Logger.log("Game FPS: " + frames + ", " + " Game UPS: " + updates);
+					frameRate = frames;
+					updateRate = updates;
 					frames = 0;
+					updates = 0;
 					frameCounter = 0;
 				}
 			}
 			if (render)
 			{
+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+				game.getRootObject().render();
 				Display.update();
 				frames++;
 			} else
@@ -103,8 +120,8 @@ public class Engine
 
 	public void exit()
 	{
-		Display.destroy();
 		game.getRootObject().destroy();
+		Display.destroy();
 	}
 
 	public Game getGame()
@@ -115,6 +132,16 @@ public class Engine
 	public String getEngineVersion()
 	{
 		return ENGINE_VERSION;
+	}
+
+	public int getFrameRate()
+	{
+		return frameRate;
+	}
+
+	public int getUpdateRate()
+	{
+		return updateRate;
 	}
 
 }
