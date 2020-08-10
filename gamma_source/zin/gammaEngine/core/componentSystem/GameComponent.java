@@ -3,84 +3,116 @@ package zin.gammaEngine.core.componentSystem;
 import java.util.ArrayList;
 import java.util.List;
 
+import zin.gammaEngine.core.utils.Logger;
+
 public abstract class GameComponent
 {
 
 	private GameObject parent;
 	private List<GameComponent> subComponents = new ArrayList<>();
 
-	public void init()
+	/**
+	 * @return Whether or not the initialization step has succeeded.
+	 */
+	public boolean init()
 	{
-		for (GameComponent component : subComponents)
+		for (int i = 0; i < subComponents.size(); i++)
 		{
-			component.init();
+			if (!subComponents.get(i).init())
+				subComponents.get(i).remove();
 		}
-	}
 
-	public void update()
-	{
-		for (GameComponent component : subComponents)
-		{
-			component.update();
-		}
+		return true;
 	}
 
 	public void input()
 	{
 		for (GameComponent component : subComponents)
-		{
 			component.input();
-		}
+	}
+
+	public void update()
+	{
+		for (GameComponent component : subComponents)
+			component.update();
 	}
 
 	public void preRender()
 	{
 		for (GameComponent component : subComponents)
-		{
 			component.preRender();
-		}
 	}
 
 	public void priorityRender()
 	{
 		for (GameComponent component : subComponents)
-		{
 			component.priorityRender();
-		}
 	}
 
 	public void render()
 	{
 		for (GameComponent component : subComponents)
-		{
 			component.render();
-		}
 	}
 
 	public void postRender()
 	{
 		for (GameComponent component : subComponents)
-		{
 			component.postRender();
-		}
 	}
 
+	/**
+	 * Everything that concerns clean up (e.g. deleting buffers, freeing buffers).
+	 */
 	public void destroy()
 	{
 		for (GameComponent component : subComponents)
-		{
 			component.destroy();
-		}
 	}
 
-	public void setParent(GameObject parent)
+	/**
+	 * Makes the passed component have all its functions (i.e. init, update, etc)
+	 * run at the same time as the parent component.
+	 */
+	public void addSubComponent(GameComponent component)
 	{
-		this.parent = parent;
+		subComponents.add(component);
+	}
+
+	public void removeSubComponent(GameComponent component)
+	{
+		if (!subComponents.contains(component))
+		{
+			Logger.error("You cannot remove a component that is not in the sub-component list.");
+			return;
+		}
+
+		subComponents.remove(component);
+	}
+
+	public List<GameComponent> getSubComponents()
+	{
+		return subComponents;
+	}
+
+	public void setSubComponents(List<GameComponent> subComponents)
+	{
+		this.subComponents = subComponents;
 	}
 
 	public GameObject getParent()
 	{
 		return parent;
+	}
+
+	public void setParent(GameObject parent)
+	{
+		for (GameComponent component : subComponents)
+		{
+			component.setParent(parent);
+		}
+
+		this.parent = parent;
 	}
 
 	public void remove()

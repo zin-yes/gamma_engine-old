@@ -3,6 +3,7 @@ package zin.gammaEngine.core.componentSystem;
 import java.util.ArrayList;
 import java.util.List;
 
+import zin.gammaEngine.core.Engine;
 import zin.gammaEngine.core.Game;
 import zin.gammaEngine.core.utils.Transform;
 
@@ -16,18 +17,26 @@ public class GameObject extends Transform
 	private List<GameObject> children;
 	private List<GameComponent> components;
 
-	public GameObject(Game game)
+	public GameObject()
 	{
 		super();
 		children = new ArrayList<>();
 		components = new ArrayList<>();
+	}
 
-		this.game = game;
+	public GameObject(GameObject src)
+	{
+		super();
+		children = src.getChildren();
+		components = src.getComponents();
+
+		game = src.getGame();
 	}
 
 	public GameObject addChild(GameObject child)
 	{
 		getChildren().add(child);
+		child.setParent(this);
 		return this;
 	}
 
@@ -38,13 +47,21 @@ public class GameObject extends Transform
 		return this;
 	}
 
-	public void init()
+	public boolean init()
 	{
-		for (GameComponent component : getComponents())
-			component.init();
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (!components.get(i).init())
+				components.get(i).remove();
+		}
 
-		for (GameObject child : getChildren())
-			child.init();
+		for (int i = 0; i < children.size(); i++)
+		{
+			if (!children.get(i).init())
+				children.get(i).remove();
+		}
+
+		return true;
 	}
 
 	public void input()
@@ -65,22 +82,40 @@ public class GameObject extends Transform
 			getChildren().get(i).update();
 	}
 
+	public void preRender()
+	{
+		for (GameObject child : getChildren())
+			child.preRender();
+	}
+
+	public void priorityRender()
+	{
+		for (GameObject child : getChildren())
+			child.priorityRender();
+	}
+
 	public void render()
 	{
-		for (int i = 0; i < getComponents().size(); i++)
-			getComponents().get(i).preRender();
+		for (GameComponent component : getComponents())
+			component.preRender();
 
-		for (int i = 0; i < getComponents().size(); i++)
-			getComponents().get(i).priorityRender();
+		for (GameComponent component : getComponents())
+			component.priorityRender();
 
-		for (int i = 0; i < getComponents().size(); i++)
-			getComponents().get(i).render();
+		for (GameComponent component : getComponents())
+			component.render();
 
-		for (int i = 0; i < getChildren().size(); i++)
-			getChildren().get(i).render();
+		for (GameObject child : getChildren())
+			child.render();
 
-		for (int i = 0; i < getComponents().size(); i++)
-			getComponents().get(i).postRender();
+		for (GameComponent component : getComponents())
+			component.postRender();
+	}
+
+	public void postRender()
+	{
+		for (GameObject child : getChildren())
+			child.postRender();
 	}
 
 	public void destroy()
@@ -112,6 +147,32 @@ public class GameObject extends Transform
 		this.components = components;
 	}
 
+	public GameObject getParent()
+	{
+		return parent;
+	}
+
+	private void setParent(GameObject parent)
+	{
+		game = parent.game;
+		this.parent = parent;
+	}
+
+	public Game getGame()
+	{
+		return game;
+	}
+
+	public void setGame(Game game)
+	{
+		this.game = game;
+	}
+
+	public Engine getEngine()
+	{
+		return game.getEngine();
+	}
+
 	public void remove()
 	{
 		if (parent == null)
@@ -120,11 +181,6 @@ public class GameObject extends Transform
 		parent.getChildren().remove(this);
 
 		destroy();
-	}
-
-	public Game getGame()
-	{
-		return game;
 	}
 
 }

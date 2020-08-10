@@ -2,25 +2,29 @@ package zin.gammaEngine.core;
 
 import static org.lwjgl.glfw.GLFW.glfwGetVersionString;
 
+import org.joml.Matrix4f;
 import org.lwjgl.Version;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import zin.gammaEngine.core.utils.Logger;
 import zin.gammaEngine.graphics.Display;
+import zin.gammaEngine.graphics.utils.ViewControllerComponent;
 
 public class Engine
 {
 
-	private static final String ENGINE_VERSION = "0.0.2-SNAPSHOT";
-
-	private boolean running = false;
-
-	private int frameRate, updateRate;
-
-	private double frameTime;
+	private static final String ENGINE_VERSION = "0.0.7-SNAPSHOT";
 
 	private Game game;
+
+	private Matrix4f transform_ProjectionMatrix;
+	private ViewControllerComponent viewController;
+
+	private int frameRate, updateRate;
+	private double frameTime, passedTime;
+
+	private boolean running = false;
 
 	public Engine(Game game)
 	{
@@ -34,36 +38,36 @@ public class Engine
 		running = true;
 
 		Display.create(game);
+		resetTransformProjection();
 		run();
 	}
 
 	public void run()
 	{
-		int updates = 0;
-		int frames = 0;
-		double frameCounter = 0;
-
-		Logger.log("Engine version: " + getEngineVersion());
-		Logger.log("Engine starting.");
-		Logger.log("Graphics Card Manufacturer: " + GL11.glGetString(GL11.GL_VENDOR));
-		Logger.log("Graphics Card Name: " + GL11.glGetString(GL11.GL_RENDERER));
-		Logger.log("OpenGL Version: " + GL11.glGetString(GL11.GL_VERSION));
-		Logger.log("GLSL Version: " + GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
-		Logger.log("GLFW Version: " + glfwGetVersionString());
-		Logger.log("LWJGL Version: " + Version.getVersion());
+		Logger.info("Engine version: " + getEngineVersion());
+		Logger.info("Engine starting.");
+		Logger.info("Graphics Card Manufacturer: " + GL11.glGetString(GL11.GL_VENDOR));
+		Logger.info("Graphics Card Name: " + GL11.glGetString(GL11.GL_RENDERER));
+		Logger.info("OpenGL Version: " + GL11.glGetString(GL11.GL_VERSION));
+		Logger.info("GLSL Version: " + GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
+		Logger.info("GLFW Version: " + glfwGetVersionString());
+		Logger.info("LWJGL Version: " + Version.getVersion());
 
 		game.init();
 		game.getRootObject().init();
 
+		Display.show();
+
 		double lastTime = (double) System.nanoTime() / 1000000000L;
-		double unprocessedTime = 0;
+		double unprocessedTime = 0, frameCounter = 0;
+		int updates = 0, frames = 0;
 
 		while (running)
 		{
 			boolean render = false;
 
 			double startTime = (double) System.nanoTime() / 1000000000L;
-			double passedTime = startTime - lastTime;
+			passedTime = startTime - lastTime;
 			lastTime = startTime;
 
 			unprocessedTime += passedTime;
@@ -83,7 +87,7 @@ public class Engine
 				}
 
 				game.loop();
-				
+
 				game.getRootObject().input();
 
 				updates++;
@@ -91,7 +95,7 @@ public class Engine
 
 				if (frameCounter >= 1.0)
 				{
-					Logger.log("Game FPS: " + frames + ", " + " Game UPS: " + updates);
+					Logger.info("Game FPS: " + frames + ", " + " Game UPS: " + updates);
 					frameRate = frames;
 					updateRate = updates;
 					frames = 0;
@@ -102,7 +106,10 @@ public class Engine
 			if (render)
 			{
 				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+				game.getRootObject().preRender();
+				game.getRootObject().priorityRender();
 				game.getRootObject().render();
+				game.getRootObject().postRender();
 				Display.update();
 				frames++;
 			} else
@@ -120,8 +127,51 @@ public class Engine
 
 	public void exit()
 	{
+		Display.hide();
 		game.getRootObject().destroy();
 		Display.destroy();
+	}
+
+	public Matrix4f getTransformProjection()
+	{
+		return transform_ProjectionMatrix;
+	}
+
+	public Matrix4f getTransformView()
+	{
+		if (viewController == null)
+		{
+			Logger.warn("No view controller found.");
+			return new Matrix4f().identity();
+		}
+
+		return viewController.getTransformView();
+	}
+
+	public ViewControllerComponent getViewController()
+	{
+		return viewController;
+	}
+
+	public void setViewController(ViewControllerComponent viewController)
+	{
+		this.viewController = viewController;
+	}
+
+	public double getFrameTime()
+	{
+		return frameTime;
+	}
+
+	public void setFrameTime(double frameTime)
+	{
+		this.frameTime = frameTime;
+	}
+
+	public void resetTransformProjection()
+	{
+		transform_ProjectionMatrix = new Matrix4f().perspective((float) Math.toRadians(game.getFOV()),
+				Display.getAspectRatio(), game.getZNear(), game.getZFar());
 	}
 
 	public Game getGame()

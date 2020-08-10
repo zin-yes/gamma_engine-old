@@ -3,43 +3,33 @@ package zin.gammaEngine.core.utils;
 public class Logger
 {
 
-	private static String PREFIX_ERR = "[GAMMA | ERROR] ";
-	private static String PREFIX_LOG = "[GAMMA | LOG] ";
-	private static String PREFIX_WRN = "[GAMMA | WARN] ";
+	private static String PREFIX_INFO = "[GAMMA | INFO] ";
+	private static String PREFIX_WRN = "\u001B[30m\u001B[43m[GAMMA | WARN] ";
+	private static String PREFIX_ERR = "\u001B[30m\u001B[41m[GAMMA | ERROR] ";
 
-	public static void log(String msg)
+	public static void info(String msg)
 	{
-		System.out.println(PREFIX_LOG + msg);
+		System.out.println(PREFIX_INFO + msg);
 	}
 
 	public static void warn(String msg)
 	{
-		System.out.println(PREFIX_WRN + msg);
+		System.out.println(PREFIX_WRN + msg + "\u001B[0m");
 	}
 
 	public static void error(String msg)
 	{
-		System.err.println(PREFIX_ERR + msg);
+		System.err.println(PREFIX_ERR + msg + "\u001B[0m");
 	}
 
-	public static String getErrorPrefix()
+	public static String getInfoPrefix()
 	{
-		return PREFIX_ERR;
+		return PREFIX_INFO;
 	}
 
-	public static void setErrorPrefix(String prefix)
+	public static void setInfoPrefix(String prefix)
 	{
-		PREFIX_ERR = prefix;
-	}
-
-	public static String getLogPrefix()
-	{
-		return PREFIX_LOG;
-	}
-
-	public static void setLogPrefxi(String prefix)
-	{
-		PREFIX_LOG = prefix;
+		PREFIX_INFO = prefix;
 	}
 
 	public static String getWarnPrefix()
@@ -50,6 +40,16 @@ public class Logger
 	public static void setWarnPrefix(String prefix)
 	{
 		PREFIX_WRN = prefix;
+	}
+
+	public static String getErrorPrefix()
+	{
+		return PREFIX_ERR;
+	}
+
+	public static void setErrorPrefix(String prefix)
+	{
+		PREFIX_ERR = prefix;
 	}
 
 }

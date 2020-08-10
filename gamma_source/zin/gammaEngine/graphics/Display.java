@@ -1,6 +1,39 @@
 package zin.gammaEngine.graphics;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL;
+import static org.lwjgl.glfw.GLFW.GLFW_DECORATED;
+import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LAST;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LAST;
+import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_FORWARD_COMPAT;
+import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
+import static org.lwjgl.glfw.GLFW.GLFW_VERSION_MAJOR;
+import static org.lwjgl.glfw.GLFW.GLFW_VERSION_MINOR;
+import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
+import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
+import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
+import static org.lwjgl.glfw.GLFW.glfwGetKey;
+import static org.lwjgl.glfw.GLFW.glfwGetMouseButton;
+import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
+import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
+import static org.lwjgl.glfw.GLFW.glfwHideWindow;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSetCursorPos;
+import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
+import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowFocusCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowOpacity;
+import static org.lwjgl.glfw.GLFW.glfwShowWindow;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
+import static org.lwjgl.glfw.GLFW.glfwTerminate;
+import static org.lwjgl.glfw.GLFW.glfwWindowHint;
+import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
 import java.nio.DoubleBuffer;
 
@@ -11,6 +44,7 @@ import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWWindowFocusCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 
 import zin.gammaEngine.core.Game;
@@ -34,8 +68,11 @@ public class Display
 
 	private static float opacity;
 
-	public static void create(Game game)
+	public static void create(final Game game)
 	{
+		width = game.getWidth();
+		height = game.getHeight();
+
 		if (!glfwInit())
 		{
 			Logger.error("Failed to initialize GLFW. Exiting.");
@@ -44,6 +81,7 @@ public class Display
 
 		glfwWindowHint(GLFW_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
 		if (System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0)
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
@@ -58,8 +96,9 @@ public class Display
 				{
 					Display.width = width;
 					Display.height = height;
+
 					GL11.glViewport(0, 0, width, height);
-					// GraphicsEngine.updateProjectionMatrix();
+					game.getEngine().resetTransformProjection();
 				}
 			});
 			break;
@@ -81,16 +120,17 @@ public class Display
 			break;
 		}
 
-		glfwSwapInterval(0);
-
 		glfwMakeContextCurrent(identifier);
 		GL.createCapabilities();
+
+		glfwSwapInterval(0);
 
 		GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
 		GL11.glEnable(GL30.GL_MULTISAMPLE);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glEnable(GL11.GL_STENCIL_TEST);
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glEnable(GL13.GL_TEXTURE_CUBE_MAP);
 		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glCullFace(GL11.GL_BACK);
 
@@ -129,12 +169,6 @@ public class Display
 
 		rotX = false;
 		rotY = false;
-
-		// callbacks
-		// monitor info
-		// transparency
-		// focus
-		// input
 	}
 
 	private static void updateInput()
@@ -164,13 +198,10 @@ public class Display
 			rotY = newY != prevY;
 
 			if (rotX)
-			{
 				dx = deltaX;
-			}
+
 			if (rotY)
-			{
 				dy = deltaY;
-			}
 
 			prevX = newX;
 			prevY = newY;
@@ -295,6 +326,16 @@ public class Display
 		return new Vector2f((float) dx, (float) dy);
 	}
 
+	public static void hide()
+	{
+		glfwHideWindow(identifier);
+	}
+
+	public static void show()
+	{
+		glfwShowWindow(identifier);
+	}
+
 	public static boolean shouldClose()
 	{
 		return glfwWindowShouldClose(identifier);
@@ -303,6 +344,11 @@ public class Display
 	public static long getIdentifier()
 	{
 		return identifier;
+	}
+
+	public static float getAspectRatio()
+	{
+		return (float) getWidth() / (float) getHeight();
 	}
 
 }

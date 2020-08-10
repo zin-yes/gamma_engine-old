@@ -23,7 +23,7 @@ public class Transform
 		rotation = src.rotation;
 		scale = src.scale;
 	}
-	
+
 	public Transform()
 	{
 		position = new Vector3f();
@@ -76,7 +76,10 @@ public class Transform
 		this.scale = new Vector3f(x, y, z);
 	}
 
-	public Matrix4f getMatrix()
+	/**
+	 * @return The position multiplied by the rotation multiplied by the scale.
+	 */
+	public Matrix4f getTransformModel()
 	{
 		Matrix4f position = new Matrix4f().translate(this.position);
 		Matrix4f rotation = new Matrix4f().rotate(this.rotation);
