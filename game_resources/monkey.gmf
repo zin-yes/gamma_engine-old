@@ -1,0 +1,8 @@
+model_file: game_resources/monkey.obj
+shader: pbr
+albedo_file: default
+normal_file: default
+height_file: default
+metallic_file: default
+roughness_file: default
+ao_file: default
