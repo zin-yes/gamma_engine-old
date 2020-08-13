@@ -21,15 +21,15 @@ public class PBRShader extends ShaderComponent
 	{
 		boolean success = super.init();
 
-		setUniform("material.albedo", 0);
-		setUniform("material.normal", 1);
-		setUniform("material.height", 2);
-		setUniform("material.roughness", 3);
-		setUniform("material.metallic", 4);
-		setUniform("material.ambient_occlusion", 5);
+		setUniform("pbr_Material.albedo", 0);
+		setUniform("pbr_Material.normal", 1);
+		setUniform("pbr_Material.height", 2);
+		setUniform("pbr_Material.roughness", 3);
+		setUniform("pbr_Material.metallic", 4);
+		setUniform("pbr_Material.ambient_occlusion", 5);
 		
-		setUniform("skyblockMap", 16);
-
+		setUniform("skybox_SamplerCube", 16);
+		
 		return success;
 	}
 
@@ -41,9 +41,9 @@ public class PBRShader extends ShaderComponent
 		for (int i = 0; i < pointLights.size(); i++)
 		{
 			PointLight light = pointLights.get(i);
-			setUniform("pointLights[" + i + "].position", light.getPosition());
-			setUniform("pointLights[" + i + "].color", light.getColor());
-			setUniform("pointLights[" + i + "].attenuation", light.getAttenuation());
+			setUniform("input_PointLights[" + i + "].position", light.getPosition());
+			setUniform("input_PointLights[" + i + "].color", light.getColor());
+			setUniform("input_PointLights[" + i + "].attenuation", light.getAttenuation());
 		}
 	}
 
@@ -56,18 +56,6 @@ public class PBRShader extends ShaderComponent
 	public static void addPointLight(PointLight pointLight)
 	{
 		pointLights.add(pointLight);
-	}
-
-	public void setR(float r)
-	{
-		bind();
-		setUniform("roughnes", r);
-	}
-
-	public void setM(float m)
-	{
-		bind();
-		setUniform("metalli", m);
 	}
 
 }

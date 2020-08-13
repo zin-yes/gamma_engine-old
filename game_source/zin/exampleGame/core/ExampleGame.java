@@ -62,7 +62,7 @@ public class ExampleGame extends Game
 				"game_resources/skybox/yneg.jpg", "game_resources/skybox/xpos.jpg",
 				"game_resources/skybox/xneg.jpg" }));
 
-		addObject(new Blueprint("game_resources/monkey.gmf", BlueprintType.GAMMA_MODEL_FILE).constructObject());
+//		addObject(new Blueprint("game_resources/monkey.gmf", BlueprintType.GAMMA_MODEL_FILE).constructObject());
 	}
 
 	float r = 0;
@@ -92,53 +92,6 @@ public class ExampleGame extends Game
 			light.getColor().add(new Vector3f(0.5f));
 		if (Display.isKeyDown(GLFW.GLFW_KEY_V))
 			light.getColor().sub(new Vector3f(0.5f));
-
-		if (Display.isKeyDown(GLFW.GLFW_KEY_HOME))
-		{
-			if (!(r > 1) && !(r < 0))
-				r += 0.0001f;
-			else if (r > 1)
-				r = 1;
-			else if (r < 0)
-				r = 0;
-
-			System.out.println(r);
-			shader.setR(r);
-		}
-		if (Display.isKeyDown(GLFW.GLFW_KEY_END))
-		{
-			if (!(r > 1) && !(r < 0))
-				r -= 0.0001f;
-			else if (r > 1)
-				r = 1;
-			else if (r < 0)
-				r = 0;
-			System.out.println(r);
-			shader.setR(r);
-		}
-
-		if (Display.isKeyDown(GLFW.GLFW_KEY_INSERT))
-		{
-			if (!(m > 1) && !(m < 0))
-				m += 0.0001f;
-			else if (m > 1)
-				m = 1;
-			else if (m < 0)
-				m = 0;
-			System.out.println(m);
-			shader.setM(m);
-		}
-		if (Display.isKeyDown(GLFW.GLFW_KEY_DELETE))
-		{
-			if (!(m > 1) && !(m < 0))
-				m -= 0.0001f;
-			else if (m > 1)
-				m = 1;
-			else if (m < 0)
-				m = 0;
-			System.out.println(m);
-			shader.setM(m);
-		}
 
 		if (Display.isKeyReleased(GLFW.GLFW_KEY_LEFT_ALT))
 			Display.setCursorGrabbed(!Display.cursorIsGrabbed());
