@@ -150,11 +150,15 @@ void main()
     vec3 kS = FresnelSchlick(max(dot(N, V), 0.0), F0);
     vec3 kD = 1.0 - kS;
     kD *= 1.0 - metallic;	  
-    vec3 irradiance = texture(skybox_SamplerCube, N).rgb;
-    vec3 diffuse = irradiance * albedo;
-	vec3 ambient = (kD * diffuse) * ao; 
     
-    vec3 color = Lo + vec3(0.001);
+    // Will be added later.
+    // vec3 irradiance = texture(skybox_SamplerCube, N).rgb;
+	// vec3 diffuse = irradiance * albedo;
+	// vec3 ambient = (kD * diffuse) * ao; 
+    
+	vec3 ambient = vec3(0.00001);
+    
+    vec3 color = Lo + ambient;
 
     color = color / (color + vec3(1.0));
     Color = vec4(pow(color, vec3(1.0/2.2)), 1.0);

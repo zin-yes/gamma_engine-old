@@ -20,7 +20,8 @@ public class ExampleGame extends Game
 
 	public ExampleGame()
 	{
-		super("Example Game", 1280, 720, DisplayState.WINDOWED, 5000);
+		super("Example Game", 640, 480, DisplayState.WINDOWED, 120);
+		setFOV(70);
 	}
 
 	PBRShader shader;
@@ -37,7 +38,7 @@ public class ExampleGame extends Game
 		String texture = "harshbricks-";
 		String textureExt = "png";
 
-		light = new PointLight(new Vector3f(0, 0, 0), new Vector3f(100), new Vector3f());
+		light = new PointLight(new Vector3f(0, 2, 0), new Vector3f(100), new Vector3f());
 		PBRShader.addPointLight(light);
 
 		ModelComponent model = new ModelComponent("game_resources/plane.obj");
@@ -65,9 +66,6 @@ public class ExampleGame extends Game
 //		addObject(new Blueprint("game_resources/monkey.gmf", BlueprintType.GAMMA_MODEL_FILE).constructObject());
 	}
 
-	float r = 0;
-	float m = 0;
-
 	@Override
 	public void loop()
 	{
@@ -87,11 +85,6 @@ public class ExampleGame extends Game
 			light.getPosition().add(0, 0.001f, 0);
 		if (Display.isKeyDown(GLFW.GLFW_KEY_PAGE_DOWN))
 			light.getPosition().sub(0, 0.001f, 0);
-
-		if (Display.isKeyDown(GLFW.GLFW_KEY_B))
-			light.getColor().add(new Vector3f(0.5f));
-		if (Display.isKeyDown(GLFW.GLFW_KEY_V))
-			light.getColor().sub(new Vector3f(0.5f));
 
 		if (Display.isKeyReleased(GLFW.GLFW_KEY_LEFT_ALT))
 			Display.setCursorGrabbed(!Display.cursorIsGrabbed());

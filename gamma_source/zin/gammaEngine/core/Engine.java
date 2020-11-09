@@ -14,7 +14,7 @@ import zin.gammaEngine.graphics.utils.ViewControllerComponent;
 public class Engine
 {
 
-	private static final String ENGINE_VERSION = "0.0.18-SNAPSHOT";
+	private static final String ENGINE_VERSION = "0.0.7-SNAPSHOT";
 
 	private Game game;
 
