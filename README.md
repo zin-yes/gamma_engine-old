@@ -7,7 +7,7 @@ Here are some images of how the current example game on the repository will look
 ![Bricks](https://imgur.com/0v1vkQy.png)
 ![Rusted Iron](https://imgur.com/tZvtTqv.png)
 
-Currently this repository is experimentational and has a lot of loose ends that need thightening up. E.g. there is only one type of light component, that being PointLight. All these issues and more will be addressed once I have more time on my hand after getting everything fleshed out.
+Currently this repository is experimentational and has a lot of loose ends that need thightening up. E.g. there is only one type of light component, that being PointLight. All these issues and more will be addressed once I have more time on my hand after getting everything fleshed out, and after I create a deferred rendering system.
 
 ## Current Features:
     - Object and component system like the alpha version of Gamma Engine.
