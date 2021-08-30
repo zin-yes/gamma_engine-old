@@ -1,0 +1,8 @@
+model_file: game_resources/plane.obj
+shader: pbr
+albedo_file: game_resources/rustediron2_albedo.png
+normal_file: game_resources/rustediron2_normal.png
+height_file: game_resources/rustediron2_height.png
+metallic_file: game_resources/rustediron2_metallic.png
+roughness_file: game_resources/rustediron2_roughness.png
+ao_file: game_resources/rustediron2_ao.png

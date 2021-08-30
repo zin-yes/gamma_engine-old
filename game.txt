@@ -1,0 +1,19 @@
+scene 1:
+	- wake in hospital
+	- only one alive
+	- corridor
+	- overgrown plants everywhere
+	- meet someone that seems friendly
+	- no music
+	- good dream bad ending
+	- running towards someone and seem like ur getting closer but dont
+scene 2:
+	- waking up in the dark
+	- no human interaction
+    - faces in windows
+	
+premiss:
+	- a guy thats very lonely and has social anixiety bc of childhood trauma
+	- lonely & isolated
+	- familial problems
+	

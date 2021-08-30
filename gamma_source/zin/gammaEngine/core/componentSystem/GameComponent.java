@@ -11,9 +11,6 @@ public abstract class GameComponent
 	private GameObject parent;
 	private List<GameComponent> subComponents = new ArrayList<>();
 
-	/**
-	 * @return Whether or not the initialization step has succeeded.
-	 */
 	public boolean init()
 	{
 		for (int i = 0; i < subComponents.size(); i++)
@@ -61,19 +58,12 @@ public abstract class GameComponent
 			component.postRender();
 	}
 
-	/**
-	 * Everything that concerns clean up (e.g. deleting buffers, freeing buffers).
-	 */
 	public void destroy()
 	{
 		for (GameComponent component : subComponents)
 			component.destroy();
 	}
 
-	/**
-	 * Makes the passed component have all its functions (i.e. init, update, etc)
-	 * run at the same time as the parent component.
-	 */
 	public void addSubComponent(GameComponent component)
 	{
 		subComponents.add(component);

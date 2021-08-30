@@ -21,7 +21,7 @@ public class ModelComponent extends GameComponent
 	private static Map<String, ModelComponent> cachedModels = new HashMap<>();
 
 	private String fileName;
-
+	
 	public ModelComponent(String fileName)
 	{
 		this.fileName = fileName;

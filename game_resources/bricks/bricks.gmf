@@ -1,0 +1,6 @@
+shader: pbr
+model_file: game_resources/cube.obj
+albedo_file: game_resources/bricks/albedo.jpg
+normal_file: game_resources/bricks/normals.jpg
+height_file: game_resources/bricks/disp.png
+height_scale: 0.1

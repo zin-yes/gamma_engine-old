@@ -3,17 +3,26 @@ package zin.gammaEngine.graphics;
 import java.util.ArrayList;
 import java.util.List;
 
+import zin.gammaEngine.graphics.components.ShaderComponent;
 import zin.gammaEngine.graphics.utils.PointLight;
-import zin.gammaEngine.graphics.utils.ShaderComponent;
 
 public class PBRShader extends ShaderComponent
 {
 
 	private static List<PointLight> pointLights = new ArrayList<>();
+	private float heightScale;
+	private boolean selected;
 
 	public PBRShader()
 	{
 		super("gamma_resources/shaders/pbr/pbr.vsh", "gamma_resources/shaders/pbr/pbr.fsh");
+		this.heightScale = 0.01f;
+	}
+
+	public PBRShader(float heightScale)
+	{
+		super("gamma_resources/shaders/pbr/pbr.vsh", "gamma_resources/shaders/pbr/pbr.fsh");
+		this.heightScale = heightScale;
 	}
 
 	@Override
@@ -27,9 +36,10 @@ public class PBRShader extends ShaderComponent
 		setUniform("pbr_Material.roughness", 3);
 		setUniform("pbr_Material.metallic", 4);
 		setUniform("pbr_Material.ambient_occlusion", 5);
-		
+		setUniform("pbr_Material.height_scale", heightScale);
+
 		setUniform("skybox_SamplerCube", 16);
-		
+
 		return success;
 	}
 
@@ -37,6 +47,8 @@ public class PBRShader extends ShaderComponent
 	public void preRender()
 	{
 		super.preRender();
+		setUniform("pbr_Material.height_scale", heightScale);
+		setUniform("selected", selected ? 1 : 0);
 
 		for (int i = 0; i < pointLights.size(); i++)
 		{
@@ -56,6 +68,26 @@ public class PBRShader extends ShaderComponent
 	public static void addPointLight(PointLight pointLight)
 	{
 		pointLights.add(pointLight);
+	}
+
+	public float getHeightScale()
+	{
+		return heightScale;
+	}
+
+	public void setHeightScale(float heightScale)
+	{
+		this.heightScale = heightScale;
+	}
+
+	public boolean isSelected()
+	{
+		return selected;
+	}
+
+	public void setSelected(boolean selected)
+	{
+		this.selected = selected;
 	}
 
 }

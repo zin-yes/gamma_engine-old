@@ -3,6 +3,7 @@
 struct Material
 {
 	sampler2D albedo, normal, height, roughness, metallic, ambient_occlusion;
+	float height_scale;
 };
 
 struct DirectionalLight
@@ -27,44 +28,24 @@ struct SpotLight
 ////////////////////////////////////////////////////////////////
 
 in vec2 TexCoords;
-in vec3 Normal;
 in vec3 WorldPos;
+in vec3 ViewPos;
+in vec3 ViewDir;
+
+in mat3 TBN;
 
 out vec4 Color;
 
 uniform Material pbr_Material;
 
-// Directional and Spot lights will be added once the lighting
-// calculations are properly in place.
-
 uniform DirectionalLight[4] input_DirectionalLights;
 uniform PointLight[32] input_PointLights;
 uniform SpotLight[32] input_SpotLights;
 
-// Temporary.
-uniform mat4 transform_View;
-
 uniform samplerCube skybox_SamplerCube;
+uniform int selected;
 
 const float PI = 3.14159265359;
-
-// This will be replaced by a proper normal mapping system in the coming updates.
-vec3 getNormalFromMap()
-{
-    vec3 tangentNormal = texture(pbr_Material.normal, TexCoords).xyz * 2.0 - 1.0;
-
-    vec3 Q1  = dFdx(WorldPos);
-    vec3 Q2  = dFdy(WorldPos);
-    vec2 st1 = dFdx(TexCoords);
-    vec2 st2 = dFdy(TexCoords);
-
-    vec3 N   = normalize(Normal);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
-
-    return normalize(TBN * tangentNormal);
-}
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -106,17 +87,72 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+vec3 Normal(vec2 parallaxTexCoords)
+{ 
+    vec3 normal = texture(pbr_Material.normal, parallaxTexCoords).xyz;
+    normal = normalize((255.0 / 128.0) * normal - 1.0);  
+    
+	return normal;
+}
+
+vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
+{ 
+    // number of depth layers
+	const float minLayers = 8.0;
+	const float maxLayers = 32.0;
+	float numLayers = mix(maxLayers, minLayers, max(dot(vec3(0.0, 0.0, 1.0), viewDir), 0.0));  
+    // calculate the size of each layer
+    float layerDepth = 1.0 / numLayers;
+    // depth of current layer
+    float currentLayerDepth = 0.0;
+    // the amount to shift the texture coordinates per layer (from vector P)
+    vec2 P = vec2(viewDir.x, -viewDir.y) * pbr_Material.height_scale; 
+    vec2 deltaTexCoords = P / numLayers;
+    
+    // get initial values
+	vec2  currentTexCoords     = texCoords;
+	float currentDepthMapValue = 1 - texture(pbr_Material.height, currentTexCoords).r;
+	  
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+	    // shift texture coordinates along direction of P
+	    currentTexCoords -= deltaTexCoords;
+	    // get depthmap value at current texture coordinates
+	    currentDepthMapValue = 1 - texture(pbr_Material.height, currentTexCoords).r;  
+	    // get depth of next layer
+	    currentLayerDepth += layerDepth;  
+	}
+	
+	// get texture coordinates before collision (reverse operations)
+	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+	
+	// get depth after and before collision for linear interpolation
+	float afterDepth  = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = 1 - texture(pbr_Material.height, currentTexCoords).r - currentLayerDepth + layerDepth;
+	 
+	// interpolation of texture coordinates
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+	
+	return finalTexCoords; 
+	
+	return currentTexCoords;
+} 
+
 void main()
 {	
-	vec3 camPos = (inverse(transform_View)[3]).xyz;
-    vec3 N = getNormalFromMap();
-    vec3 V = normalize(camPos - WorldPos);
+    vec3 V = TBN * normalize(ViewPos - WorldPos);
+    
+    vec2 ParallaxTexCoords = ParallaxMapping(TexCoords, V);
+	    
+    vec3 albedo = pow(texture(pbr_Material.albedo, ParallaxTexCoords).rgb, vec3(2.2));
+    
+    vec3 N = Normal(ParallaxTexCoords);
     vec3 R = reflect(-V, N); 
-
-    vec3 albedo     = pow(texture(pbr_Material.albedo, TexCoords).rgb, vec3(2.2));
-    float metallic  = texture(pbr_Material.metallic, TexCoords).r;
-    float roughness = texture(pbr_Material.roughness, TexCoords).r;
-    float ao        = texture(pbr_Material.ambient_occlusion, TexCoords).r;
+    
+    float metallic = texture(pbr_Material.metallic, ParallaxTexCoords).r;
+    float roughness = texture(pbr_Material.roughness, ParallaxTexCoords).r;
+    float ao = texture(pbr_Material.ambient_occlusion, ParallaxTexCoords).r;
 
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
@@ -124,7 +160,7 @@ void main()
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < 32; ++i) 
     {
-        vec3 L = normalize(input_PointLights[i].position - WorldPos);
+        vec3 L = TBN * normalize(input_PointLights[i].position - WorldPos);
         vec3 H = normalize(V + L);
         float distance = length(input_PointLights[i].position - WorldPos);
         float attenuation = 1.0 / (distance * distance);
@@ -157,8 +193,17 @@ void main()
 	// vec3 ambient = (kD * diffuse) * ao; 
     
 	vec3 ambient = vec3(0.00001);
+	
+	vec3 color;
+	
+	if(selected == 0)
+	{
+    	color = Lo + ambient;
+	} else
+	{
+    	color = N;
+	}
     
-    vec3 color = Lo + ambient;
 
     color = color / (color + vec3(1.0));
     Color = vec4(pow(color, vec3(1.0/2.2)), 1.0);

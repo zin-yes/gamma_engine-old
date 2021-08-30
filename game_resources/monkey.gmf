@@ -1,8 +1,9 @@
-model_file: game_resources/monkey.obj
+model_file: game_resources/plane.obj
 shader: pbr
-albedo_file: default
-normal_file: default
-height_file: default
-metallic_file: default
-roughness_file: default
-ao_file: default
+albedo_file: game_resources/harshbricks-albedo.png
+normal_file: game_resources/harshbricks-normal.png
+height_file: game_resources/harshbricks-height.png
+metallic_file: game_resources/harshbricks-metallic.png
+roughness_file: game_resources/harshbricks-roughness.png
+ao_file: game_resources/harshbricks-ao.png
+height_scale: 0.01

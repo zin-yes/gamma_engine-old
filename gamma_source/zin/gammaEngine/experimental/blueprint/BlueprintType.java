@@ -1,4 +1,4 @@
-package zin.exampleGame.core;
+package zin.gammaEngine.experimental.blueprint;
 
 public enum BlueprintType
 {

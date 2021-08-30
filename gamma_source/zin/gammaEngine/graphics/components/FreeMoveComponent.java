@@ -48,7 +48,7 @@ public class FreeMoveComponent extends ViewControllerComponent
 		if (yaw < -360.0f)
 			yaw = 360.0f;
 
-		if (Display.isKeyDown(GLFW.GLFW_KEY_W) || Display.isKeyDown(GLFW.GLFW_KEY_ENTER))
+		if (Display.isKeyDown(GLFW.GLFW_KEY_W))
 			getParent().getPosition().add(new Vector3f(forward).mul(cameraSpeed));
 		if (Display.isKeyDown(GLFW.GLFW_KEY_S))
 			getParent().getPosition().sub(new Vector3f(forward).mul(cameraSpeed));

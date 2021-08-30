@@ -1,11 +1,16 @@
 package zin.gammaEngine.graphics.components;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
+import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
+import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
@@ -19,7 +24,6 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
 import zin.gammaEngine.core.componentSystem.GameComponent;
-import zin.gammaEngine.graphics.utils.ShaderComponent;
 
 public class SkyboxComponent extends GameComponent
 {
@@ -84,13 +88,13 @@ public class SkyboxComponent extends GameComponent
 	public void priorityRender()
 	{
 		shader.bind();
-		GL13.glActiveTexture(GL13.GL_TEXTURE16);
-		GL13.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, cubeMap.getIdentifier());
-		GL30.glBindVertexArray(vaoID);
-		GL20.glEnableVertexAttribArray(0);
-		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, vertexCount);
-		GL20.glDisableVertexAttribArray(0);
-		GL30.glBindVertexArray(0);
+		glActiveTexture(GL13.GL_TEXTURE16);
+		glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, cubeMap.getIdentifier());
+		glBindVertexArray(vaoID);
+		glEnableVertexAttribArray(0);
+		glDrawArrays(GL11.GL_TRIANGLES, 0, vertexCount);
+		glDisableVertexAttribArray(0);
+		glBindVertexArray(0);
 		ShaderComponent.unbind();
 	}
 

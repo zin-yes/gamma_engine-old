@@ -2,19 +2,23 @@ package zin.gammaEngine.core;
 
 import static org.lwjgl.glfw.GLFW.glfwGetVersionString;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joml.Matrix4f;
 import org.lwjgl.Version;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import zin.gammaEngine.core.utils.Logger;
+import zin.gammaEngine.experimental.postProcessing.Manager;
 import zin.gammaEngine.graphics.Display;
 import zin.gammaEngine.graphics.utils.ViewControllerComponent;
 
 public class Engine
 {
 
-	private static final String ENGINE_VERSION = "0.0.7-SNAPSHOT";
+	private static final String GAMMA_VERSION = "0.0.20-SNAPSHOT";
 
 	private Game game;
 
@@ -26,11 +30,16 @@ public class Engine
 
 	private boolean running = false;
 
+	private List<Integer> fRates = new ArrayList<>();
+	private List<Integer> uRates = new ArrayList<>();
+
+	public Manager manager;
+
 	public Engine(Game game)
 	{
 		this.game = game;
 
-		frameTime = 1.0 / game.getFrameCap();
+		frameTime = 1.0 / game.getUPS();
 	}
 
 	public void start()
@@ -44,7 +53,7 @@ public class Engine
 
 	public void run()
 	{
-		Logger.info("Engine version: " + getEngineVersion());
+		Logger.info("Gamma version: " + getGammaVersion());
 		Logger.info("Engine starting.");
 		Logger.info("Graphics Card Manufacturer: " + GL11.glGetString(GL11.GL_VENDOR));
 		Logger.info("Graphics Card Name: " + GL11.glGetString(GL11.GL_RENDERER));
@@ -55,6 +64,9 @@ public class Engine
 
 		game.init();
 		game.getRootObject().init();
+
+		if (manager != null)
+			manager.init();
 
 		Display.show();
 
@@ -73,7 +85,7 @@ public class Engine
 			unprocessedTime += passedTime;
 			frameCounter += passedTime;
 
-			while (unprocessedTime > frameTime)
+			if (unprocessedTime > frameTime)
 			{
 				render = true;
 
@@ -95,7 +107,9 @@ public class Engine
 
 				if (frameCounter >= 1.0)
 				{
-					Logger.info("Game FPS: " + frames + ", " + " Game UPS: " + updates);
+					Logger.info("Game FPS: " + frames + ", " + " Game UPS: " + updates + ".");
+					fRates.add(frames);
+					uRates.add(updates);
 					frameRate = frames;
 					updateRate = updates;
 					frames = 0;
@@ -105,13 +119,15 @@ public class Engine
 			}
 			if (render)
 			{
-				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-				game.getRootObject().preRender();
-				game.getRootObject().priorityRender();
-				game.getRootObject().render();
-				game.getRootObject().postRender();
-				Display.update();
-				frames++;
+				if (manager == null)
+				{
+					render();
+					frames++;
+				} else
+				{
+					manager.render();
+					frames++;
+				}
 			} else
 			{
 				try
@@ -125,11 +141,38 @@ public class Engine
 		}
 	}
 
+	private void render()
+	{
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+
+		game.getRootObject().preRender();
+		game.getRootObject().priorityRender();
+		game.getRootObject().render();
+		game.getRootObject().postRender();
+
+		Display.update();
+	}
+
 	public void exit()
 	{
 		Display.hide();
 		game.getRootObject().destroy();
 		Display.destroy();
+
+		float avgFPS = 0, avgUPS = 0;
+
+		for (int value : fRates)
+		{
+			avgFPS += value;
+		}
+
+		for (int value : uRates)
+		{
+			avgUPS += value;
+		}
+
+		Logger.info(
+				"Avg. FPS: " + (int) (avgFPS / fRates.size()) + ",  Avg. UPS: " + (int) (avgUPS / uRates.size()) + ".");
 	}
 
 	public Matrix4f getTransformProjection()
@@ -179,9 +222,9 @@ public class Engine
 		return game;
 	}
 
-	public String getEngineVersion()
+	public String getGammaVersion()
 	{
-		return ENGINE_VERSION;
+		return GAMMA_VERSION;
 	}
 
 	public int getFrameRate()

@@ -14,17 +14,17 @@ public abstract class Game
 	private int width, height;
 	private DisplayState state;
 
-	private double frameCap;
+	private double ups;
 	private boolean shouldClose = false, mipmapping = true, anisotropicFiltering = true;
 	private float anisotropicAmount = 16, fov = 70, z_near = 0.1f, z_far = 1000.0f;
 
-	public Game(String title, int width, int height, DisplayState state, double frameCap)
+	public Game(String title, int width, int height, DisplayState state, double ups)
 	{
 		this.title = title;
 		this.width = width;
 		this.height = height;
 		this.state = state;
-		this.frameCap = frameCap;
+		this.ups = ups;
 
 		engine = new Engine(this);
 
@@ -35,17 +35,11 @@ public abstract class Game
 
 	public abstract void loop();
 
-	/**
-	 * Add an object to the root object.
-	 */
 	public void addObject(GameObject object)
 	{
 		getRootObject().addChild(object);
 	}
 
-	/**
-	 * Add a component to the root object.
-	 */
 	public void addComponent(GameComponent component)
 	{
 		getRootObject().addComponent(component);
@@ -96,65 +90,42 @@ public abstract class Game
 		return state;
 	}
 
-	public double getFrameCap()
+	public double getUPS()
 	{
-		return frameCap;
+		return ups;
 	}
 
-	public void setFrameCap(double frameCap)
+	public void setUPS(double ups)
 	{
-		engine.setFrameTime(1.0 / frameCap);
-		this.frameCap = frameCap;
+		engine.setFrameTime(1.0 / ups);
+		this.ups = ups;
 	}
 
-	/**
-	 * Request for the entire program to exit.
-	 */
 	public void requestClose()
 	{
 		shouldClose = true;
 	}
 
-	/**
-	 * @return Whether or not there is a request to exit the program (can be
-	 *         requested both by user and program itself).
-	 */
 	public boolean shouldClose()
 	{
 		return shouldClose;
 	}
 
-	/**
-	 * @return Whether or not mip-mapping is enabled for texture loading.
-	 */
 	public boolean getMipmapping()
 	{
 		return mipmapping;
 	}
 
-	/**
-	 * Changes whether or not mip-mapping is allowed for future texture loads (set
-	 * this setting preferably in the init() method and no later).
-	 */
 	public void setMipmapping(boolean mipmapping)
 	{
 		this.mipmapping = mipmapping;
 	}
 
-	/**
-	 * @return Whether or not anisotropic-filtering is enabled for texture loading.
-	 */
 	public boolean getAnisotropicFiltering()
 	{
 		return anisotropicFiltering;
 	}
 
-	/**
-	 * Changes whether or not anisotropic-filtering is allowed for future texture
-	 * loads (set this setting preferably in the init() method and no later).
-	 * 
-	 * Mip-mapping has also got to be enabled for anisotropic-filtering to work.
-	 */
 	public void setAnisotropicFiltering(boolean anisotropicFiltering)
 	{
 		this.anisotropicFiltering = anisotropicFiltering;

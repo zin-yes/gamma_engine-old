@@ -40,13 +40,13 @@ import org.lwjgl.BufferUtils;
 import zin.gammaEngine.core.componentSystem.GameComponent;
 import zin.gammaEngine.core.utils.Logger;
 
-public class ShaderComponent extends GameComponent
+public abstract class ShaderComponent extends GameComponent
 {
 
-	public static Map<String, Integer> cachedShaders = new HashMap<>();
+	private static Map<String, Integer> cachedShaders = new HashMap<>();
 
-	public int identifier;
-	public Map<String, Integer> uniforms = new HashMap<>();
+	private int identifier;
+	private Map<String, Integer> uniforms = new HashMap<>();
 	private String vertexPath, fragmentPath;
 
 	public ShaderComponent(String vertexPath, String fragmentPath)
@@ -55,94 +55,20 @@ public class ShaderComponent extends GameComponent
 		this.fragmentPath = fragmentPath;
 	}
 
-	public void setAttribute(int index, String name)
-	{
-		glBindAttribLocation(identifier, index, name);
-	}
-
-	public boolean exists(String name)
-	{
-		return uniforms.get(name) != null;
-	}
-
-	public void addUniform(String name)
-	{
-		uniforms.put(name, glGetUniformLocation(identifier, name));
-	}
-
-	public void setUniform(String name, Vector2f value)
-	{
-		if (!exists(name))
-			addUniform(name);
-
-		bind();
-		glUniform2f(getUniform(name), value.x, value.y);
-	}
-
-	public void setUniform(String name, Vector3f value)
-	{
-		if (!exists(name))
-			addUniform(name);
-
-		bind();
-		glUniform3f(getUniform(name), value.x, value.y, value.z);
-	}
-
-	public void setUniform(String name, Matrix4f value)
-	{
-		if (!exists(name))
-			addUniform(name);
-
-		bind();
-		FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
-		value.get(buffer);
-		glUniformMatrix4fv(getUniform(name), false, buffer);
-	}
-
-	public void setUniform(String name, float value)
-	{
-		if (!exists(name))
-			addUniform(name);
-
-		bind();
-		glUniform1f(getUniform(name), value);
-	}
-
-	public void setUniform(String name, int value)
-	{
-		if (!exists(name))
-			addUniform(name);
-
-		bind();
-		glUniform1i(getUniform(name), value);
-	}
-
-	public int getUniform(String name)
-	{
-		return uniforms.get(name);
-	}
-
-	public void bind()
-	{
-		glUseProgram(identifier);
-	}
-
-	public static void unbind()
-	{
-		glUseProgram(0);
-	}
-
 	@Override
-	public void init()
+	public boolean init()
 	{
 		if (cachedShaders.containsKey(vertexPath + fragmentPath))
 		{
 			identifier = cachedShaders.get(vertexPath + fragmentPath);
-			return;
+			return true;
 		}
 
 		int vertexShader = loadShader(vertexPath, GL_VERTEX_SHADER);
 		int fragmentShader = loadShader(fragmentPath, GL_FRAGMENT_SHADER);
+
+		if ((vertexShader == -1) || (fragmentShader == -1))
+			return false;
 
 		identifier = glCreateProgram();
 		glAttachShader(identifier, vertexShader);
@@ -156,7 +82,114 @@ public class ShaderComponent extends GameComponent
 
 		cachedShaders.put(vertexPath + fragmentPath, identifier);
 
-		setAttribute(0, "Position");
+		setAttribute(0, "input_Position");
+		setAttribute(1, "input_TexCoords");
+		setAttribute(2, "input_Normal");
+		setAttribute(3, "input_Tangent");
+		setAttribute(4, "input_biTangent");
+
+		return true;
+	}
+
+	public boolean reload()
+	{
+		int vertexShader = loadShader(vertexPath, GL_VERTEX_SHADER);
+		int fragmentShader = loadShader(fragmentPath, GL_FRAGMENT_SHADER);
+
+		if ((vertexShader == -1) || (fragmentShader == -1))
+			return false;
+
+		identifier = glCreateProgram();
+		glAttachShader(identifier, vertexShader);
+		glAttachShader(identifier, fragmentShader);
+		glLinkProgram(identifier);
+
+		glDetachShader(identifier, vertexShader);
+		glDetachShader(identifier, fragmentShader);
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+
+		cachedShaders.put(vertexPath + fragmentPath, identifier);
+
+		setAttribute(0, "input_Position");
+		setAttribute(1, "input_TexCoords");
+		setAttribute(2, "input_Normal");
+		setAttribute(3, "input_Tangent");
+		setAttribute(4, "input_biTangent");
+
+		if (cachedShaders.containsKey(vertexPath + fragmentPath))
+		{
+			cachedShaders.put(vertexPath + fragmentPath, identifier);
+		}
+
+		return true;
+	}
+
+	protected void setAttribute(int index, String name)
+	{
+		glBindAttribLocation(identifier, index, name);
+	}
+
+	protected boolean exists(String name)
+	{
+		return uniforms.get(name) != null;
+	}
+
+	protected void addUniform(String name)
+	{
+		uniforms.put(name, glGetUniformLocation(identifier, name));
+	}
+
+	protected void setUniform(String name, Vector2f value)
+	{
+		if (!exists(name))
+			addUniform(name);
+
+		bind();
+		glUniform2f(getUniform(name), value.x, value.y);
+	}
+
+	protected void setUniform(String name, Vector3f value)
+	{
+		if (!exists(name))
+			addUniform(name);
+
+		bind();
+		glUniform3f(getUniform(name), value.x, value.y, value.z);
+	}
+
+	protected void setUniform(String name, Matrix4f value)
+	{
+		if (!exists(name))
+			addUniform(name);
+
+		bind();
+		FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
+		value.get(buffer);
+		glUniformMatrix4fv(getUniform(name), false, buffer);
+	}
+
+	protected void setUniform(String name, float value)
+	{
+		if (!exists(name))
+			addUniform(name);
+
+		bind();
+		glUniform1f(getUniform(name), value);
+	}
+
+	protected void setUniform(String name, int value)
+	{
+		if (!exists(name))
+			addUniform(name);
+
+		bind();
+		glUniform1i(getUniform(name), value);
+	}
+
+	protected int getUniform(String name)
+	{
+		return uniforms.get(name);
 	}
 
 	private int loadShader(String path, int shaderType)
@@ -166,15 +199,20 @@ public class ShaderComponent extends GameComponent
 		{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path)));
 			String line;
+
 			while ((line = reader.readLine()) != null)
-			{
 				source.append(line).append("\n");
-			}
+
 			reader.close();
 		} catch (IOException e)
 		{
-			Logger.error("Failed to load fragment shader \"" + fragmentPath + "\".");
-			return 0;
+			if (shaderType == GL_VERTEX_SHADER)
+				Logger.error("Failed to load vertex shader \"" + path + "\".");
+			else if (shaderType == GL_FRAGMENT_SHADER)
+				Logger.error("Failed to load fragment shader \"" + path + "\".");
+
+			remove();
+			return -1;
 		}
 
 		int identifier = glCreateShader(shaderType);
@@ -183,8 +221,13 @@ public class ShaderComponent extends GameComponent
 		if (glGetShaderi(identifier, GL_COMPILE_STATUS) == GL_FALSE)
 		{
 			System.out.println(glGetShaderInfoLog(identifier, 1024));
-			Logger.error("Failed to compile fragment shader \"" + fragmentPath + "\".");
-			return 0;
+			if (shaderType == GL_VERTEX_SHADER)
+				Logger.error("Failed to compile vertex shader \"" + path + "\".");
+			else if (shaderType == GL_FRAGMENT_SHADER)
+				Logger.error("Failed to compile fragment shader \"" + path + "\".");
+
+			remove();
+			return -1;
 		}
 
 		return identifier;
@@ -194,6 +237,9 @@ public class ShaderComponent extends GameComponent
 	public void preRender()
 	{
 		bind();
+		setUniform("transform_Model", getParent().getTransformModel());
+		setUniform("transform_View", getParent().getEngine().getTransformView());
+		setUniform("transform_Projection", getParent().getEngine().getTransformProjection());
 	}
 
 	@Override
@@ -209,19 +255,29 @@ public class ShaderComponent extends GameComponent
 		glDeleteProgram(identifier);
 	}
 
-	public String getVertexPath()
+	protected String getVertexPath()
 	{
 		return vertexPath;
 	}
 
-	public String getFragmentPath()
+	protected String getFragmentPath()
 	{
 		return fragmentPath;
 	}
 
-	public int getIdentifier()
+	protected int getIdentifier()
 	{
 		return identifier;
+	}
+
+	public void bind()
+	{
+		glUseProgram(identifier);
+	}
+
+	public static void unbind()
+	{
+		glUseProgram(0);
 	}
 
 }

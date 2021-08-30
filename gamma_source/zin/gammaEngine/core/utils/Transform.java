@@ -76,9 +76,6 @@ public class Transform
 		this.scale = new Vector3f(x, y, z);
 	}
 
-	/**
-	 * @return The position multiplied by the rotation multiplied by the scale.
-	 */
 	public Matrix4f getTransformModel()
 	{
 		Matrix4f position = new Matrix4f().translate(this.position);
